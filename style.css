@@ -1,0 +1,159 @@
+            
+             /* PAGE STRUCTURE */
+
+
+            
+            @font-face { font-family: isocpeur; src: url('isocpeur.ttf'); } 
+            /* tell the SVG path to be a thin blue line without any area fill */
+
+            html { 
+            background: url(background2.jpg) no-repeat center center fixed;  
+              -webkit-background-size: cover;
+              -webkit-font-smoothing: antialiased;
+              -moz-background-size: cover;
+              -o-background-size: cover;
+              background-size: cover;
+            }
+
+            * {
+                
+                font-family: isocpeur, sans-serif !important;
+            }
+
+            h1 {
+                font-size: 65px;
+                margin-bottom:0px;
+            }
+
+            h2 {
+                margin-top:0px;
+                margin-bottom: 5px;
+            }
+
+            .bigText {
+                font-size: 30px;
+                font-weight: bold;
+                
+            }
+
+            .notsobigText {
+                font-size: 20px;
+                font-weight: bold;
+                
+            }
+
+            #strongs strong{
+              margin-left: 50px;
+            }
+
+            #pagewrapper strong {
+              margin-left: 50px;
+            }
+
+            #chart1 strong {  
+              font-size: 18px;
+            }
+
+            #strongs {
+              margin-left: 50px;
+            }
+
+            #period {
+              margin-top: 5px;
+              margin-bottom:-15px;
+              margin-left: 50px;
+              font-size: 18px;
+              font-weight: bold;
+            }
+            hr {
+              margin-top: 0px;
+              margin-bottom: 15px;
+            }
+
+            #sidebar ul {
+              list-style-type: none;
+              padding: 0px;
+              margin: 0px;
+              font-size: 20px;
+              padding-bottom:40px;
+              cursor:pointer;
+
+            }
+
+            /* PAGE STRUCTURE */
+
+            #sidebar {
+              float: left;
+              margin-top:-60px;
+              margin-left:10px;
+              width: 150px;
+
+            }
+
+            #pagewrapper {
+              
+                margin: 3.5% auto 0 auto;
+                width:1040px;
+
+            }
+
+            #rowCharts {
+              margin-top: -10px;
+            }
+
+            #firstchart {
+              float: left;
+              margin-right: -40px;
+
+            }
+
+
+            #secondchart {
+               float: left;
+              margin-right: -10px;
+            }
+
+            #thirdchart {
+              float: left;
+              margin-left: -10px;
+              width:415px;
+              height: 400px;
+              
+            }
+            
+            #test1{
+              margin-top: -50px;
+            }
+
+            #test2{
+              margin-top: -50px;
+            }
+
+            #test3{
+              margin-top: 10px;
+            }
+
+
+            /* About Hover */
+        #sidebar li  p{
+            font-size: 14px;
+            height: 30px;
+            position: relative;
+            margin-top:5px;
+            display:none;
+
+        }
+
+        #sidebar li:hover p {
+            padding-bottom: 35px;
+            display: block;
+        }
+
+            /* GRAPH STYLING */
+           
+
+             #test3 .tick line {
+                display: none;
+            }
+
+           

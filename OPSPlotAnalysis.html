@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>OPS Data Analysis Spring 2014</title>
+        <link rel="stylesheet" type="text/css" href="style.css">
+      <link rel="stylesheet" type="text/css" href="nv.d3.css">
+      <script type="text/javascript" src="js/d3.v3.js"></script>
+      <script type="text/javascript" src="js/nv.d3.js"></script>
+    </head>
+    <body>  
+    <div id="sidebar">
+         <h1>OPS</h1>
+         <h2>Plot Analysis</h2>
+         <hr>
+         <ul>
+            <li>About > <p>Created Spring of 2014 by Steve Chappell.  Data acquired from the OPS online spreadsheet.</p></li>
+            <li>Parsing > <p>Instructions can be found in the html document immediately below the loading of the CSV file. </li>
+         </ul>
+         <h2>Data Sets</h2>
+         <hr>
+         <svg id="testy"></svg>
+    </div>
+
+    <div id="pagewrapper"> 
+        
+        <div id="chart1">
+            <strong id="strong"></strong>
+            <p id="period"></p>
+            <svg viewBox="0 0 1000 410"></svg>   
+        </div>
+
+        <div id="rowCharts">
+
+            <div id="firstchart">
+                <strong>Percent Of Jobs</strong>
+                <svg id="test1"></svg>
+            </div>
+
+            <div id="secondchart">
+                <strong>Percent Of Income</strong>
+                <svg id="test2"></svg>
+            </div>
+
+            <div id="thirdchart">
+                <strong>Average Spent $ Per Paper Type</strong>
+                <svg id="test3" viewBox="0 0 415 400"></svg>
+            </div>
+        </div>
+<script src="js/d3.v3.js"></script>
+<script src="js/nv.d3.js"></script>
+<script src="js/tooltip.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/interactiveLayer.js"></script>
+<script src="js/legend.js"></script>
+<script src="js/axis.js"></script>
+<script src="js/scatter.js"></script>
+<script src="js/line.js"></script>
+<script src="js/stackedArea.js"></script>
+<script src="js/stackedAreaChart.js"></script>
+<script src="js/pie.js"></script>
+<script src="js/pieChart.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/multiBar.js"></script>
+<script src="js/multiBarChart.js"></script>
+<script src="js/discreteBar.js"></script>
+<script src="js/discreteBarChart.js"></script>
+
+
+
+    	<script type="text/javascript">
+
+    	 //Loading Data
+            var dataset;
+            var dataset2;
+            d3.csv("spring2014datapartial.csv", function(error, data) {
+
+            //DATA PARSING INSTRUCTIONS
+            //NOTE: Data needs to be cleaned before use.  
+            //1.  "Job Type" should be turned to "JobType"
+            //2.  "Prices with tax" should be turned to "Priceswithtax"
+            //3.  All jobs without prices, ie cancelled, should have prices set to 0
+            //4.  Date format should not include the year
+            //5.  All days must be added to the spreadsheet, even if nothing happened on those days
+            //6.  Dollar signs must be removed from price category.  (use format in excel)
+            //7.  In excel A1 must be renamed "Period", and A2 should list the time period of data
+
+            if (error) {  //If error is not null, something went wrong.
+                console.log("Error no data!");  //Logs
+            } else {      //If no error, the file loaded correctly. Yay
+                dataset = data;
+                console.log("Found the data!");
+
+            d3.csv("summer2013data.csv", function(error, data2) 
+
+            { if (error) {  //If error is not null, something went wrong.
+                console.log("Error no data!");  //Logs
+            } else {      //If no error, the file loaded correctly. Yay
+                dataset2 = data2;
+                console.log("Found the data!");
+
+        var totalJobs = 0;  //Need to do this to reset the tool tips or they dont work correctly, totals persist
+        var totalSpent = 0;
+            
+  function redraw() {  //Redraws the entire dataset
+
+        //Store all data in this array for each papertype
+        var paperTypes = [
+    		{
+    			name: "Heavyweight Bond",
+                nickName: "Heavyweight",
+    			priceWithTax: 6.53,
+                feetInRoll:100,
+    			totalJobCount: 0,
+    			totalPrintCost:0,
+    			avgJobCost:0,
+    			avgPrintSize:0,
+    			percentOfJobs:0,
+    			percentOfMoney:0,
+                feetPrinted:0,
+                rollsPrinted:0,
+                color: "#98df8a",
+    		},
+    		{
+    			name: "Lightweight Bond",
+                nickName: "Lightweight",
+    			priceWithTax: 4.36,
+                feetInRoll:150,
+    			totalJobCount: 0,
+    			totalPrintCost:0,
+    			avgJobCost:0,
+    			avgPrintSize:0,
+    			percentOfJobs:0,
+    			percentOfMoney:0,
+                feetPrinted:0,
+                rollsPrinted:0,
+                color: "#1f77b4",
+    		},
+            {
+                name: "Mylar",
+                nickName: "Mylar",
+                priceWithTax: 9.80,
+                feetInRoll:100,
+                totalJobCount: 0,
+                totalPrintCost:0,
+                avgJobCost:0,
+                avgPrintSize:0,
+                percentOfJobs:0,
+                percentOfMoney:0,
+                feetPrinted:0,
+                rollsPrinted:0,
+                color: "#ff7f0e",
+            },
+            {
+                name: "Satin \"Semi\" Gloss",
+                nickName: "Satin Gloss",
+                priceWithTax: 9.80,
+                feetInRoll:100,
+                totalJobCount: 0,
+                totalPrintCost:0,
+                avgJobCost:0,
+                avgPrintSize:0,
+                percentOfJobs:0,
+                percentOfMoney:0,
+                feetPrinted:0,
+                rollsPrinted:0,
+                color: "#d62728",
+            }
+
+
+    	];
+
+
+        //
+        //
+        //This section computes all the necesarry data for the visulization for each papertype.
+        //
+        //
+
+
+        //Setting Some Total variables that don't belong to a specific type of paper, ie: "global totals"
+        totalJobs = 0;
+        totalSpent = 0;
+        var totalFeetPrinted = 0;
+        var totalCompletedJobs = 0; //STILL NEED TO WRITE THIS CODE
+
+
+
+        //TOTAL JOB COUNT FOR OVERALL
+            for (i=0; i<data.length;i++) {
+
+                            if (data[i].Status != "") {
+                                totalJobs = totalJobs + 1;
+                            } else {
+
+                            }
+
+                        }
+                           
+                     console.log(totalJobs);
+
+        //TOTAL JOB COUNT FOR EACH PAPER TYPE
+            for (j=0;j<paperTypes.length; j++){
+                for (i=0; i<totalJobs; i++) {
+
+                            if (data[i].JobType == paperTypes[j].name) {
+                                paperTypes[j].totalJobCount = paperTypes[j].totalJobCount + 1;
+                            } else {
+
+                            }
+
+                        }
+                           console.log("Totals" + paperTypes[j].totalJobCount);
+                    }
+
+
+        //TOTAL PRINT COST 
+            for (i=0; i<totalJobs; i++) {
+
+                            if (data[i].Status == "Completed")
+                            {
+                                totalSpent = parseFloat(totalSpent) + parseFloat(data[i].Pricewithtax);
+
+
+
+                            } else {
+
+                            }
+
+                        }
+                           
+                    console.log("Total amount spent in the OPS this semester: " + totalSpent.toFixed(2));
+
+
+        //AMOUNT SPENT ON EACH PAPER TYPE
+            for (j=0;j<paperTypes.length;j++){
+
+                for (i=0;i<totalJobs;i++){
+
+                    if (paperTypes[j].name == data[i].JobType && data[i].Status == "Completed")
+                    {
+                        paperTypes[j].totalPrintCost = parseFloat(paperTypes[j].totalPrintCost) + parseFloat(data[i].Pricewithtax);
+                    } else {
+
+                    }
+                }
+                          console.log(paperTypes[j].name + " had " + paperTypes[j].totalPrintCost + "Spent" );
+            }
+
+        //LINEAR FEET OF PRINTS PRINTED PER PAPER TYPE
+            for  (i=0; i<paperTypes.length;i++) {
+                paperTypes[i].feetPrinted = paperTypes[i].totalPrintCost / paperTypes[i].priceWithTax;
+
+                    console.log(paperTypes[i].name + " feet printed this semseter: " + paperTypes[i].feetPrinted.toFixed(0));
+            }
+    
+
+        //LINEAR FEET OF PRINTS PRINTED TOTAL
+            for (i=0; i<paperTypes.length;i++) {
+                totalFeetPrinted = totalFeetPrinted + paperTypes[i].feetPrinted;
+            }
+
+                    console.log(totalFeetPrinted.toFixed(0) + " total feet printed this semester!");
+
+        //NUMBER OF ROLLS OF EACH PAPER TYPE
+            for (i=0; i<paperTypes.length;i++) {
+                paperTypes[i].rollsPrinted =  paperTypes[i].feetPrinted / paperTypes[i].feetInRoll;
+
+                    console.log(paperTypes[i].name + " rolls printed this semester: " + paperTypes[i].rollsPrinted.toFixed(2));
+
+            }
+
+        //AVERAGE JOB COST PER PAPER TYPE
+            for (i=0;i<paperTypes.length;i++) {
+        		paperTypes[i].avgJobCost = paperTypes[i].totalPrintCost / paperTypes[i].totalJobCount;
+
+                    console.log(paperTypes[i].name + " average job cost: " + paperTypes[i].avgJobCost.toFixed(2));
+                        
+            }
+
+        //CALCULATES EACH PAPER TYPES PERCENT OF THE TOTAL JOBS
+            for (i=0; i<paperTypes.length;i++) {
+                paperTypes[i].percentOfJobs = paperTypes[i].totalJobCount / totalJobs;
+
+                    console.log(paperTypes[i].name + " had: " + (paperTypes[i].percentOfJobs * 100).toFixed(0) + "% of jobs.");
+
+            }
+
+        //CALCULATES EACH PAPER TYPES PERCENT OF THE TOTAL SPENT
+            for (i=0; i<paperTypes.length;i++) {
+                paperTypes[i].percentOfMoney = paperTypes[i].totalPrintCost / totalSpent;
+
+                    console.log(paperTypes[i].name + " had: " + (paperTypes[i].percentOfMoney * 100).toFixed(0) + "% of the amount spent at the OPS.")
+
+            }
+
+        //CALCULATES AVERAGE PRINT SIZE PER PAPER TYPE
+            for (i=0; i<paperTypes.length;i++) {
+                paperTypes[i].avgPrintSize = (paperTypes[i].avgJobCost / paperTypes[i].priceWithTax);
+
+                    console.log(paperTypes[i].name + " average print size is: " + paperTypes[i].avgPrintSize.toFixed(0) + " feet");
+
+
+            }
+
+        //
+        //
+        //ADDING SOME FUNCTIONS FOR LATER PURPOSESSSS, SOME MAY BE REDUNDANT 
+        //
+        //
+
+
+        //This function ain't working, not sure why.
+            function dailyPaperJobs(papertype, date) {
+                    var total = 0;
+
+                    for (i=0;i<uniqueDates.length;i++) {
+                        
+                        if (uniqueDates[i].date == date) {
+                            total == uniqueDates[i].papertype;
+                            //console.log(uniqueDates[i].lwTotal);
+
+
+                        } else {
+
+                        }
+
+                    }return total;
+                    
+                }
+
+            function uniTotalSpent(uniName){
+                    var total = 0;
+                    for (i=0;i<totalJobs;i++){
+                    
+                        if (data[i].UNI == uniName){
+
+                            total = parseFloat(data[i].Pricewithtax) + total
+                        } else {
+
+                        }
+
+                    }
+
+                    return total.toFixed(2);
+                }
+                
+            function uniNumberOfJobs(uniName) {
+
+                    var total = 0;
+                    for (i=0;i<totalJobs;i++) {
+
+                        if (data[i].UNI == uniName && data[i].Status == "Completed") {
+                            total = 1 + total;
+                            
+
+                            } else {
+
+                          }
+
+                 }
+
+                    return total;
+                }
+
+
+        //CALCULATING THE TOP USERS
+            var uniNameTempOnly = [];  //Temp array to get all uni's before filtering them
+            var uniCount = [];         //Keeps track of number of jobs by each uni.
+
+            for (i=0;i<totalJobs;i++){
+
+                            if (data[i].UNI != "" && data[i].UNI != "????") {
+                                uniNameTempOnly.push(data[i].UNI);
+                                uniCount.push(0);
+
+
+                            } else {
+
+
+                            }
+                        }
+
+
+            function onlyUnique(value, index, self) { 
+                    return self.indexOf(value) === index;
+            } 
+
+            var uniqueUniNames = uniNameTempOnly.filter(onlyUnique); //finds unique UNIs
+            for (i=0;i<uniqueUniNames.length;i++) {
+
+                for (j=0;j<totalJobs;j++) {
+
+                    if (data[j].UNI == uniqueUniNames[i] && data[j].Status == "Completed") {
+                        uniCount[i] = uniCount[i] + 1;
+
+                    } else {
+
+                    }
+                }
+            }
+
+            console.log(uniqueUniNames[0] + " had " + uniCount[0] + " completed jobs this semester!");
+
+            var topUsers = [];
+            var highestNumberOfJobs = Math.max.apply(Math,uniCount);
+
+            //console.log("The most number of jobs per uni is " + highestNumberOfJobs); //Checking to see highest number of completed jobs
+
+            for (i=0;i<uniqueUniNames.length;i++) {
+
+                if (uniCount[i] == highestNumberOfJobs) {
+                    topUsers.push(uniqueUniNames[i]);
+                } else {
+
+                }
+            }
+            console.log(topUsers);
+            console.log(uniTotalSpent(topUsers));
+
+            //CALCULATING TOTAL JOBS FOR DIFFERENT DAYS
+            var datesTemp = [];
+            var datesTemp2 = [];
+            var uniqueDates = [];
+
+
+            for (i=0;i<totalJobs;i++) { 
+                if (data[i].Date != "") {  //Makes sure to skip over instances without dates, could cause issues
+                    datesTemp.push(data[i].Date); 
+                } else {
+                }
+                }
+
+            var datesTemp2 = datesTemp.filter(onlyUnique); //Gets each of the dates
+            
+            for (i=0;i<datesTemp2.length;i++) {
+                
+                
+                // console.log("DATES TEMP " + datesTemp2[i]);
+                var obj = {
+                        date: datesTemp2[i],
+                        totalJobs: 0,
+                        hwTotal: 0,
+                        lwTotal: 0,
+                        mTotal: 0,
+                        sgTotal: 0,
+                };
+                    uniqueDates.push(obj);
+                }
+
+            for (i=0;i<uniqueDates.length;i++) {
+
+                for (j=0;j<totalJobs;j++) {
+
+                    if (data[j].Status == "Completed" && uniqueDates[i].date == data[j].Date) {
+
+                        uniqueDates[i].totalJobs = uniqueDates[i].totalJobs + 1;
+
+
+                    } else {
+
+
+                    }
+
+
+                }
+
+            }
+
+            //Should add another for loop for this something like for  (i=0; i<paperTypes.length;i++) so it does all the paper types.
+            //FOR HEAVYWEIGHT
+            for (i=0;i<uniqueDates.length;i++) {
+
+                for (j=0;j<totalJobs;j++) {
+
+                    if (data[j].Status == "Completed" && uniqueDates[i].date == data[j].Date && data[j].JobType == "Heavyweight Bond" ) {
+
+                        uniqueDates[i].hwTotal = uniqueDates[i].hwTotal + 1;
+
+                    } else {
+
+                    }
+
+                }
+            }
+
+            //FOR LIGHTWEIGHT
+            for (i=0;i<uniqueDates.length;i++) {
+
+                for (j=0;j<totalJobs;j++) {
+
+                    if (data[j].Status == "Completed" && uniqueDates[i].date == data[j].Date && data[j].JobType == "Lightweight Bond" ) {
+
+                        uniqueDates[i].lwTotal = uniqueDates[i].lwTotal + 1;
+
+                    } else {
+
+                    }
+
+                }
+            }
+
+            //FOR MYLAR
+            for (i=0;i<uniqueDates.length;i++) {
+
+                for (j=0;j<totalJobs;j++) {
+
+                    if (data[j].Status == "Completed" && uniqueDates[i].date == data[j].Date && data[j].JobType == "Mylar" ) {
+
+                        uniqueDates[i].mTotal = uniqueDates[i].mTotal + 1;
+
+                    } else {
+
+                    }
+
+                }
+            }
+
+            //FOR SATIN - GLOSS
+            for (i=0;i<uniqueDates.length;i++) {
+
+                for (j=0;j<totalJobs;j++) {
+
+                    if (data[j].Status == "Completed" && uniqueDates[i].date == data[j].Date && data[j].JobType == "Satin \"Semi\" Gloss" ) {
+
+                        uniqueDates[i].sgTotal = uniqueDates[i].sgTotal + 1;
+
+                    } else {
+
+                    }
+
+                }
+
+            }
+                console.log(uniqueDates);
+
+
+           /////////////////// Area below generates the data for the NVD3 Main Graph
+
+           
+            var myData = grabData(); 
+
+            function grabData() {   //The data has to be reformatted in this way so the nvd3 can read it.
+
+                var lwcoords =[], hwcoords = [], mcoords = [], sgcoords = []; //Making a subset for the coordinates for each paper type
+
+
+                for (var i = 0; i<uniqueDates.length; i++) {
+
+                    hwcoords.push({x: Date.parse(uniqueDates[i].date),y: uniqueDates[i].hwTotal});
+                    lwcoords.push({x: Date.parse(uniqueDates[i].date),y: uniqueDates[i].lwTotal});
+                    mcoords.push({x: Date.parse(uniqueDates[i].date),y: uniqueDates[i].mTotal});
+                    sgcoords.push({x: Date.parse(uniqueDates[i].date),y: uniqueDates[i].sgTotal});
+                }
+
+                return [
+
+                {
+                    values: hwcoords,  //loads the x, y coordinates for the heavyweight line
+                    key: "Heavyweight Bond",
+                    color: "#98df8a"  //Color doesn't work via here yet, need to think of a more efficient way to do this.
+                },
+                {
+                    values: lwcoords,
+                    key: "Lightweight Bond",
+                    color: "#1f77b4"
+                },
+                
+                {
+                    values: mcoords,
+                    key: "Mylar",
+                    color: "#ff7f0e"
+                },
+                {
+                    values: sgcoords,
+                    key: "Satin Gloss",
+                    color: "#d62728"
+                }
+                ];
+                }
+
+               // console.log(myData);
+
+            /////////////////// Area below generates the data for the NVD3 Percent of Jobs Pie Graph
+
+            var jobPercent = [];  //Once again restructing the data for nvd3
+
+            for (i=0;i<paperTypes.length;i++) {
+
+                jobPercent.push({name: paperTypes[i].nickName, y: (paperTypes[i].percentOfJobs*100).toFixed(0), color: paperTypes[i].color, total: paperTypes[i].totalJobCount});
+            }
+
+            console.log(jobPercent);
+
+            /////////////////// Area below generates the data for the NVD3 Percent of Income Pie Graph
+
+            var moneyPercent = []; //Once again restructing the data for nvd3
+
+            for (i=0;i<paperTypes.length;i++) {
+
+                console.log(paperTypes[i].percentOfMoney*100 + "LOOK");
+                moneyPercent.push({name: paperTypes[i].nickName, y: (paperTypes[i].percentOfMoney*100).toFixed(0), color: paperTypes[i].color});
+
+
+            }
+
+            console.log(moneyPercent);
+
+            /////////////////// Area below generates the data for the NVD3 Average Spent Graph
+
+            var myData2 = grabData2(); //Once again restructing the data for nvd3.  Pie charts want data a different way, idk...
+
+            function grabData2() {
+
+                var spentPerPaper = []
+
+                for (i=0;i<paperTypes.length;i++){
+
+                    spentPerPaper.push({name: paperTypes[i].nickName, y: parseFloat(paperTypes[i].avgJobCost.toFixed(2))});
+
+                }
+                return [
+
+                    {
+                        values: spentPerPaper,
+                    }
+
+                    ];
+                 }
+
+            //////////////////////////////////////////// ACTUAL VIZ PART ////////////////////////////////
+            //////////////////////////////////////////// ACTUAL VIZ PART ////////////////////////////////
+            //////////////////////////////////////////// ACTUAL VIZ PART ////////////////////////////////
+
+                        //MAIN GRAPH
+                        nv.addGraph(function() {
+                        var width = 1000, height = 400;
+                        var chart1 = nv.models.stackedAreaChart()
+                                      .useInteractiveGuideline(true)
+                                      .x(function(d) { return d.x })
+                                      .y(function(d) { return d.y })
+                                      .showControls(false)
+                                      .width(width)
+                                      .height(height);
+
+                                      
+                        chart1.xAxis
+                        .showMaxMin(false)
+                        .tickFormat(function(d) {
+                                  return d3.time.format('%m/%d')(new Date(d))
+                                })
+
+                        chart1.yAxis
+                        .showMaxMin(false)
+                            .tickFormat(d3.format(',.0f'))
+                            .axisLabel('Date');
+
+
+
+                        d3.select('#chart1 svg')
+                            .datum(myData)
+                            .transition().duration(1200).call(chart1);
+
+                        nv.utils.windowResize(chart1.update);
+
+                        return chart1;
+                      });
+
+                        //PIE CHART for job percents
+
+                      
+                            nv.addGraph(function() {
+                                var width2 = 340,
+                                    height2 = 400;
+
+
+                                var chart = nv.models.pieChart()
+                                    .x(function(d) { return d.name })
+                                    .y(function(d) { return d.y })
+                                    .color(["#98df8a", "#1f77b4", "#ff7f0e","#d62728"])
+                                    .width(width2)
+                                    .height(height2)
+                                    .showLegend(false)
+                                    .donut(true)
+                                    .labelType("percent")
+                                    .tooltipContent( function (key, x, y, e, graph) {
+                                            return '<h3>' + "<strong>" + key + "</strong>" + '</h3>' + '<p>'  + "<strong>" + (totalJobs * (x/100)+1).toFixed(0) + "</strong>" + " Jobs" + '</p>'
+                                        })
+
+                                    .donutRatio(.5);
+
+                                  d3.select("#test1")
+                                    .datum(jobPercent)
+                                    .transition().duration(1200)
+                                    .attr('width', width2)
+                                    .attr('height', height2)
+                                    .call(chart);
+
+                                return chart;
+                            });
+                        
+                        //PIE CHART for money percents
+
+                        var testTotal = totalSpent.toFixed(2);
+                            
+                            console.log(testTotal);
+                      
+                            nv.addGraph(function() {
+                                var width3 = 340,
+                                    height3 = 400;
+
+                                var chart2 = nv.models.pieChart()
+                                    .x(function(d) { return d.name })
+                                    .y(function(d) { return d.y })
+                                    .color(["#98df8a", "#1f77b4", "#ff7f0e","#d62728"])
+                                    .width(width3)
+                                    .height(height3)
+                                    .showLegend(false)
+                                    .donut(true)
+                                    .labelType("percent")
+                                    .tooltipContent( function (key, x, y, e, graph) {
+                                            return '<h3>' + "<strong>" + key + "</strong>" + '</h3>' + '<p>'  + "<strong>" + "$" + ((totalSpent.toFixed(2)) * (x/100)).toFixed(0) + "</strong>" + " Spent" + '</p>'
+                                         })
+
+                                     .donutRatio(.5);
+
+                                  d3.select("#test2")
+                                    .datum(moneyPercent)
+                                    .transition().duration(1200)
+                                    .attr('width', width3)
+                                    .attr('height', height3)
+                                    .call(chart2);
+
+                                      nv.utils.windowResize(chart2.update);
+
+                                return chart2;
+                            });
+                       
+                        //BAR CHART for amount of money spent on avg for paper types
+
+                                nv.addGraph(function() {
+                                  var chart3 = nv.models.discreteBarChart()
+                                      .x(function(d) { return d.name })
+                                      .y(function(d) { return d.y})
+                                      .color(["#98df8a", "#1f77b4", "#ff7f0e","#d62728"])
+                                      .showValues(true)
+                                      .height(300)
+                                      .width(415)
+                                      .showYAxis(false)
+                                      .tooltips(false);
+
+
+                                      
+                                      var commasFormatter = d3.format(",.0f");
+
+                                      chart3.valueFormat(function(d) { return "$" + commasFormatter(d); })
+
+                                      chart3.yAxis
+                                        .tickFormat(function(d) { return "$" + commasFormatter(d); })
+                                        .showMaxMin(false);
+
+                                  d3.select('#test3')
+                                      .datum(myData2)
+                                    .transition().duration(1200)
+                                      .call(chart3);
+
+                                  nv.utils.windowResize(chart3.update);
+
+
+                                  return chart3;
+                                });
+
+                            d3.select('#test2')
+                              .append("text")
+                              .attr("x", 170)             
+                              .attr("y", 200)
+                              .attr("text-anchor", "middle")
+                              .attr("class","bigText") 
+                              .text("$" + (totalSpent.toFixed(0)).toString())
+
+                            d3.select('#test2')
+                              .append("text")
+                              .attr("x", 170)             
+                              .attr("y", 220)
+                              .attr("text-anchor", "middle")
+                              .attr("class","notsobigText") 
+                              .text("Spent")
+                             
+
+                             d3.select('#test1')
+                              .append("text")
+                              .attr("x", 170)             
+                              .attr("y", 200)
+                              .attr("text-anchor", "middle")
+                              .attr("class","bigText") 
+                              .text((totalJobs).toString());
+
+                             d3.select('#test1')
+                              .append("text")
+                              .attr("x", 170)             
+                              .attr("y", 220)
+                              .attr("text-anchor", "middle")
+                              .attr("class","notsobigText") 
+                              .text("Jobs");
+
+                            d3.select('#period')
+                            .append("text")
+                            .attr("x",0)             
+                            .attr("y",0)
+                            .attr("text-anchor", "right")
+                            .attr("class","periodText")
+
+                            .text(data[0].Period.toString());
+
+
+                            //
+
+                            var svg = d3.select("#testy").append("svg:svg");
+                            svg.append("circle")
+                                .attr("cx", 10)
+                                .attr("cy", 10)
+                                .attr("r", 8)
+                                
+                                .attr("fill", "#660066")
+                                
+                                .attr("opacity", "0.58")
+                                .on("mouseover", function(){d3.select(this)
+                                    .style("opacity", "1");
+                                  })
+                                .on("mouseout", function(){d3.select(this)
+                                    .style("opacity", "0.7");
+                                  })    
+                                .on("click", function() {
+                                        data = dataset2;
+                            
+                                        d3.selectAll(".notsobigText").data([]).exit().remove()
+                                        d3.selectAll(".bigText").data([]).exit().remove()
+                                        d3.selectAll(".periodText").data([]).exit().remove()
+                                        redraw();
+                               
+                              });
+
+                            d3.select('#testy')      //Attach label to main graph so you know what dataset is active
+                            .append("text")
+                            .attr("x", 25)             
+                            .attr("y", 15)
+                            .attr("text-anchor", "left")
+                            .attr("class","buttonText") 
+                            .text("Summer 2013");
+
+
+                            var svg = d3.select("#testy").append("svg:svg");
+                            svg.append("circle")
+                                .attr("cx", 10)
+                                .attr("cy", 30)
+                                .attr("r", 8)
+                                .attr("fill", "#660066")
+                                .attr("opacity", "0.58")
+                                .on("mouseover", function(){d3.select(this)
+                                    .style("opacity", "1");
+                                  })
+                                .on("mouseout", function(){d3.select(this)
+                                    .style("opacity", "0.7");
+                                  })    
+                                .on("click", function() {
+                                        data = dataset;
+
+                                        d3.selectAll(".notsobigText").data([]).exit().remove()
+                                        d3.selectAll(".bigText").data([]).exit().remove()
+                                        d3.selectAll(".periodText").data([]).exit().remove()
+                                        redraw();   
+                                  });
+
+
+                            d3.select('#testy')       //Attach label to main graph so you know what dataset is active
+                            .append("text")
+                            .attr("x", 25)             
+                            .attr("y", 35)
+                            .attr("text-anchor", "left")
+                            .attr("class","buttonText") 
+                            .text("Spring 2014");
+}
+
+            redraw();  //Initially draws the graphs based off first set of data
+                       
+                    }})
+
+
+
+}})
+    	  </script>
+
+    </div>
+    </body>
+</html>
